@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  VISITANT
+}
+
+enum StatusOrder {
+  PROCESSING
+  COMPLETE
+  NO_COMPLETE
+}
+
+model Users {
+  id        String    @id @unique
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @map("updated_at")
+  Customer  Customer?
+}
+
+model Customer {
+  id        String   @id @unique
+  name      String
+  lastname  String
+  phone     String
+  user      Users    @relation(fields: [user_id], references: [id])
+  user_id   String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  Order     Order[]
+}
+
+model Category {
+  id        String    @id @unique
+  name      String    @unique
+  image     String
+  createdAt DateTime  @default(now()) @map("created_at")
+  Product   Product[]
+}
+
+model Order {
+  id            String          @id @unique
+  customer_id   String
+  status        StatusOrder
+  customer      Customer        @relation(fields: [customer_id], references: [id])
+  createdAt     DateTime        @default(now()) @map("created_at")
+  Order_Product Order_Product[]
+}
+
+model Order_Product {
+  id         String   @id @unique
+  createdAt  DateTime @default(now()) @map("created_at")
+  amount     Int
+  total      Int      @default(0)
+  order_id   String
+  order      Order    @relation(fields: [order_id], references: [id])
+  product_id String
+  product    Product  @relation(fields: [product_id], references: [id])
+}
+
+model Product {
+  id            String          @id @unique
+  name          String          @unique
+  image         String
+  description   String
+  price         Int
+  categoryId    String
+  category      Category        @relation(fields: [categoryId], references: [id])
+  createdAt     DateTime        @default(now()) @map("created_at")
+  Order_Product Order_Product[]
+}
